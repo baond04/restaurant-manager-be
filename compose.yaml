@@ -1,0 +1,23 @@
+# spring-boot-docker-compose tự bật các dịch vụ này khi chạy ./mvnw spring-boot:run (hồ sơ dev).
+services:
+  postgres:
+    image: 'postgres:17-alpine'
+    environment:
+      - 'POSTGRES_DB=restaurant'
+      - 'POSTGRES_USER=restaurant'
+      - 'POSTGRES_PASSWORD=restaurant'
+      - 'TZ=Asia/Ho_Chi_Minh'
+    ports:
+      - '5433:5432'
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+  redis:
+    image: 'redis:7.4-alpine'
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis-data:/data
+volumes:
+  pg-data:
+  redis-data:
