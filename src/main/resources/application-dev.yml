@@ -1,0 +1,11 @@
+# Hồ sơ dev: PostgreSQL và Redis lấy từ compose.yaml (spring-boot-docker-compose tự nối).
+spring:
+  jpa:
+    show-sql: false
+  docker:
+    compose:
+      lifecycle-management: start-only # tắt app không tắt DB, lần sau chạy nhanh hơn
+
+logging:
+  level:
+    com.restaurant.manager: debug
