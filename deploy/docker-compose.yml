@@ -1,0 +1,55 @@
+# Chạy toàn bộ hệ thống (5 container). Đặt ba repo cạnh nhau trong cùng thư mục cha, rồi trong thư mục này:
+#   cp .env.example .env   (điền JWT_SECRET, GOOGLE_API_KEY)
+#   docker compose up -d --build        ->  http://localhost:8088
+# Dữ liệu demo (db/demo) được nạp vì SPRING_FLYWAY_LOCATIONS có classpath:db/demo; bỏ phần đó khi chạy thật.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: restaurant
+      POSTGRES_USER: restaurant
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-restaurant}
+      TZ: Asia/Ho_Chi_Minh
+    volumes: [pg-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restaurant"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis-data:/data]
+
+  ai:
+    build: { context: ../../recommender-system, dockerfile: service/Dockerfile }
+    environment:
+      AI_INTERNAL_KEY: ${AI_INTERNAL_KEY:-change-me-internal}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}  # để trống: trợ lý trả lời bằng câu mẫu dự phòng
+
+  be:
+    build: ..
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+      ai: { condition: service_started }
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/restaurant
+      SPRING_DATASOURCE_USERNAME: restaurant
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-restaurant}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/demo
+      JWT_SECRET: ${JWT_SECRET:?đặt JWT_SECRET trong .env, ít nhất 32 ký tự}
+      AI_SERVICE_URL: http://ai:8000
+      AI_INTERNAL_KEY: ${AI_INTERNAL_KEY:-change-me-internal}
+
+  fe:
+    build: ../../restaurant-manager-fe
+    depends_on: [be]
+    ports: ["8088:80"]  # chỉ FE mở ra ngoài; BE, AI, DB nằm trong mạng nội bộ của compose
+
+volumes:
+  pg-data:
+  redis-data:

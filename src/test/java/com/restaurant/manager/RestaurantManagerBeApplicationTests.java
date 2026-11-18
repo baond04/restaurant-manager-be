@@ -33,7 +33,7 @@ class RestaurantManagerBeApplicationTests {
 
 	@Test
 	void apiIsProtected() throws Exception {
-		mvc.perform(get("/api/v1/orders")).andExpect(status().isForbidden());
+		mvc.perform(get("/api/v1/orders")).andExpect(status().isUnauthorized()); // chưa đăng nhập: 401
 	}
 
 }

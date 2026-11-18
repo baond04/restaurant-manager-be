@@ -5,7 +5,13 @@ spring:
   docker:
     compose:
       lifecycle-management: start-only # tắt app không tắt DB, lần sau chạy nhanh hơn
+  flyway:
+    locations: classpath:db/migration,classpath:db/demo # db/demo: dữ liệu giả chỉ nạp ở dev
 
 logging:
   level:
     com.restaurant.manager: debug
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdef} # prod bắt buộc đặt biến môi trường

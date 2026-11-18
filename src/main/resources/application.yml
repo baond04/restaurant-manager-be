@@ -33,3 +33,8 @@ management:
 app:
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  jwt:
+    secret: ${JWT_SECRET}
+  ai:
+    url: ${AI_SERVICE_URL:http://localhost:8000}
+    internal-key: ${AI_INTERNAL_KEY:dev-internal-key}
